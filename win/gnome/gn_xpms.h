@@ -1,8 +1,8 @@
-/* NetHack 3.6	gn_xpms.h	$NHDT-Date: 1432512805 2015/05/25 00:13:25 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $ */
+/*	SCCS Id: @(#)gnxpms.h	3.4	2000/07/16	*/
 /* Copyright (C) 1998 by Erik Andersen <andersee@debian.org> */
 /* NetHack may be freely redistributed.  See license for details. */
 /* These XPMs are the artwork of Warwick Allison
- * <warwick@troll.no>.  They have been borrowed from
+ * <warwick@troll.no>.  They have been borrowed from 
  * the most excellent NetHackQt, until such time as
  * we can come up with something better.
  *
@@ -10,7 +10,6 @@
  * http://www.troll.no/~warwick/nethack/
  */
 
-/* clang-format off */
 /* XPM */
 static char *blind_xpm[] = {
 /* width height ncolors chars_per_pixel */
@@ -1448,4 +1447,4 @@ static char *nothing_xpm[] = {
 "oooooooooooooooooooooooooooooooooooooooo",
 "oooooooooooooooooooooooooooooooooooooooo"
 };
-/* clang-format on */
+

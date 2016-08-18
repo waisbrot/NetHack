@@ -1,6 +1,5 @@
-$ ! vms/vmsbuild.com -- compile and link NetHack 3.6.*			[pr]
-$	version_number = "3.5.0"
-$ ! $NHDT-Date$  $NHDT-Branch$:$NHDT-Revision$
+$ ! vms/vmsbuild.com -- compile and link NetHack 3.4.*			[pr]
+$	version_number = "3.4.3"
 $ !
 $ ! usage:
 $ !   $ set default [.src]	!or [-.-.src] if starting from [.sys.vms]
@@ -147,39 +146,33 @@ $	g := 'f$extract(0,1,cc)'
 $	if g.eqs."$" then  g := 'f$extract(1,1,cc)'	!"foreign" gcc
 $	if f$edit(f$extract(1,1,cc),"UPCASE").eqs."E" then  g := X	!GEMC
 $	if g.nes."G" .and. c_opt.ne.o_GNUC then  gnulib = ""
+$	if g.eqs."G"  .or. c_opt.eq.o_GNUC then  gnulib = "," + gnulib
 $ ! linker setup; if a symbol for "LINK" is defined, we'll use it
 $	if f$type(link).nes."STRING" then  link = "LINK/NOMAP"
 $	if p4.nes."" then  link = link + p4 !append optional user preferences
-$	if f$trnlnm("F").nes."" then  close/noLog f
+$   if c_opt.eq.o_DECC .or. l_opt.eq.10
+$   then
+$	crtl = ""	!sys$share:decc$shr.exe/Sharable found automatically
 $	create crtl.opt	!empty
-$	open/Append f crtl.opt
-$	write f "! crtl.opt"
-$   if c_opt.eq.o_DECC .or. l_opt.eq.20
-$   then  $! l_opt=="none", leave crtl.opt empty (shs$share:decc$shr.exe/Share)
 $   else
-$	! gnulib order:  vaxcrtl.exe+gcclib.olb vs gcclib.olb+vaxcrtl.olb
-$	if l_opt.eq.0 then  write f "sys$share:vaxcrtl.exe/Shareable"
-$	if gnulib.nes."" then  write f gnulib
-$	if l_opt.ne.0 then  write f "sys$library:vaxcrtl.olb/Library"
+$	crtl = ",sys$library:vaxcrtl.olb/Library"	!object library
+$     if l_opt.ne.0 then  goto crtl_ok
+$	crtl = ",sys$disk:[-.src]crtl.opt/Options"	!shareable image
+$     if f$search("crtl.opt").nes."" then  goto crtl_ok !assume its right
+$	create sys$disk:[-.src]crtl.opt
+sys$share:vaxcrtl.exe/Shareable
 $   endif
-$	close f
+$crtl_ok:
 $	if f$search("crtl.opt;-2").nes."" then  purge/Keep=2/noLog crtl.opt
 $ ! version ID info for linker to record in .EXE files
 $	create ident.opt
 $	open/Append f ident.opt
-$	write f "! ident.opt"
 $	write f "identification=""",version_number,"""	!version"
 $	close f
 $	if f$search("ident.opt;-1").nes."" then  purge/noLog ident.opt
+$	ident_opt = ",sys$disk:[-.src]ident.opt/Options"
 $ ! final setup
 $	nethacklib = "[-.src]nethack.olb"
-$	create nethack.opt
-! nethack.opt
-nethack.olb/Library/Include=(vmsmain)
-sys$library:starlet.olb/Include=(lib$initialize)
-psect_attr=lib$initialize, Con,Usr,noPic,Rel,Gbl,noShr,noExe,Rd,noWrt,Long
-iosegment=128
-$	if f$search("nethack.opt;-2").nes."" then  purge/Keep=2/noLog nethack.opt
 $	milestone = "write sys$output f$fao("" !5%T "",0),"
 $     if c_opt.eq.o_LINK then  goto link  !"LINK" requested, skip compilation
 $	rename	 := rename/New_Vers
@@ -221,28 +214,27 @@ $begin:
 $!
 $! miscellaneous special source file setup
 $!
-$ if f$search("pmatchregex.c").eqs."" then  copy [-.sys.share]pmatchregex.c []*.*
 $ if f$search("random.c").eqs."" then  copy [-.sys.share]random.c []*.*
 $ if f$search("tclib.c") .eqs."" then  copy [-.sys.share]tclib.c  []*.*
 $ if f$search("[-.util]lev_yacc.c").eqs."" then  @[-.sys.vms]spec_lev.com
 $!
 $! create object library
 $!
-$     if c_opt.ne.o_SPCL .or. f$search(nethacklib).eqs."" then -
+$     if c_opt.ne.o_SPCL .or. f$search("''nethacklib'").eqs."" then -
   libr/Obj 'nethacklib'/Create=(Block=3000,Hist=0)
 $ if f$search("''nethacklib';-1").nes."" then  purge 'nethacklib'
 $!
-$! compile and link makedefs, then nethack, lev_comp+dgn_comp, dlb+recover.
+$! compile and link makedefs, then nethack, finally lev_comp & dgn_comp.
 $!
 $ milestone "<compiling...>"
-$ c_list = "[-.sys.vms]vmsmisc,[-.sys.vms]vmsfiles,[]alloc,dlb,monst,objects"
+$ c_list = "[-.sys.vms]vmsmisc,[]alloc,dlb,monst,objects"
 $     if c_opt.eq.o_SPCL then  c_list = c_list + ",decl,drawing"
 $ gosub compile_list
 $     if c_opt.eq.o_SPCL then  goto special !"SPECIAL" requested, skip main build
 $ set default [-.util]
 $ c_list = "#makedefs"
 $ gosub compile_list
-$ link makedefs.obj,'nethacklib'/Lib,[-.src]ident.opt/Opt,[-.src]crtl/Opt
+$ link makedefs.obj,'nethacklib'/Lib'crtl''gnulib''ident_opt'
 $ milestone "makedefs"
 $! create some build-time files
 $ makedefs -p	!pm.h
@@ -255,8 +247,8 @@ $ milestone " (*.c)"
 $ set default [-.src]
 $! compile most of the source files:
 $ c_list = "decl,version,[-.sys.vms]vmsmain,[-.sys.vms]vmsunix" -
-	+ ",[-.sys.vms]vmstty,[-.sys.vms]vmsmail" -
-	+ ",[]random,[]tclib,[]pmatchregex"	!copied from [-.sys.share]
+	+ ",[-.sys.vms]vmstty,[-.sys.vms]vmsmail,[-.sys.vms]vmsfiles" -
+	+ ",[]random,[]tclib"	!copied from [-.sys.share]
 $ gosub compile_list
 $ c_list = "[-.win.tty]getline,[-.win.tty]termcap" -
 	+ ",[-.win.tty]topl,[-.win.tty]wintty"
@@ -272,8 +264,8 @@ $ c_list = "hack,hacklib,invent,light,lock,mail,makemon,mapglyph,mcastu" -
 $ gosub compile_list
 $ c_list = "pline,polyself,potion,pray,priest,quest,questpgr,read" -
 	+ ",rect,region,restore,rip,rnd,role,rumors,save,shk,shknam,sit" -
-	+ ",sounds,sp_lev,spell,steal,steed,sys,teleport,timeout,topten" -
-	+ ",track,trap,u_init"
+	+ ",sounds,sp_lev,spell,steal,steed,teleport,timeout,topten,track" -
+	+ ",trap,u_init"
 $ gosub compile_list
 $ c_list = "uhitm,vault,vision,vis_tab,weapon,were,wield,windows" -
 	+ ",wizard,worm,worn,write,zap"
@@ -281,7 +273,7 @@ $ gosub compile_list
 $!
 $link:
 $ milestone "<linking...>"
-$ link/Exe=nethack.exe nethack.opt/Options,ident.opt/Options,crtl.opt/Options
+$ link/Exe=nethack.exe 'nethacklib'/Lib/Incl=(vmsmain)'crtl''gnulib''ident_opt'
 $ milestone "NetHack"
 $     if c_opt.eq.o_LINK then  goto done	!"LINK" only
 $special:
@@ -297,19 +289,17 @@ $ copy [-.sys.vms]lev_lex.h stdio.*/Prot=(s:rwd,o:rwd)
 $ gosub compile_list
 $ rename stdio.h lev_lex.*
 $ link/exe=lev_comp.exe lev_main.obj,lev_yacc.obj,lev_lex.obj,-
-	panic.obj,'nethacklib'/Lib,[-.src]ident.opt/Opt,[-.src]crtl.opt/Opt
+	panic.obj,'nethacklib'/Lib'crtl''gnulib''ident_opt'
 $ milestone "lev_comp"
 $ link/exe=dgn_comp.exe dgn_main.obj,dgn_yacc.obj,dgn_lex.obj,-
-	panic.obj,'nethacklib'/Lib,[-.src]ident.opt/Opt,[-.src]crtl.opt/Opt
+	panic.obj,'nethacklib'/Lib'crtl''gnulib''ident_opt'
 $ milestone "dgn_comp"
 $!
 $ c_list = "#dlb_main,#recover"
 $ gosub compile_list
-$ link/exe=dlb.exe dlb_main.obj,-
-	panic.obj,'nethacklib'/Lib,[-.src]ident.opt/Opt,[-.src]crtl.opt/Opt
+$ link/exe=dlb.exe dlb_main.obj,panic.obj,'nethacklib'/Lib'crtl''gnulib''ident_opt'
 $ milestone "dlb"
-$ link/exe=recover.exe recover.obj,-
-	'nethacklib'/Lib,[-.src]ident.opt/Opt,[-.src]crtl.opt/Opt
+$ link/exe=recover.exe recover.obj,'nethacklib'/Lib'crtl''gnulib''ident_opt'
 $ milestone "recover"
 $!
 $done:

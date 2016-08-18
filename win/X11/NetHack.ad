@@ -1,5 +1,3 @@
-! $NHDT-Date: 1457079198 2016/03/04 08:13:18 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.11 $
-
 ! The display_file, tombstone, and menu windows are all formatted assuming
 ! a fixed width font.  Text windows may or may not be formatted as above.
 ! The rip window applies if the GRAPHIC_TOMBSTONE option is turned on, and
@@ -13,7 +11,7 @@ NetHack*menu*font:			fixed
 NetHack*text*font:			fixed
 NetHack*map*font:			nh10
 
-! tile_file names a file containing full-color tiles for the map.
+! To use full-color tiles for the map, uncomment the tile file name.
 ! If you use a 100dpi (or greater) monitor you may wish to double the
 ! tile size so you can see the figures.  If NetHack was compiled to
 ! use XPM (USE_XPM in config.h), the tile_file is a standard XPM file.
@@ -21,15 +19,12 @@ NetHack*map*font:			nh10
 ! the custom format - to enlarge an XPM file, use processing tools
 ! such as XV or preferably PBMplus.
 !
-NetHack.tile_file: x11tiles
+!NetHack.tile_file: x11tiles
 !NetHack.double_tile_size: True
 !
 ! The annotation of pets.
 !NetHack.pet_mark_bitmap: pet_mark.xbm
 !NetHack.pet_mark_color: Red
-! The annotation of item piles.
-!NetHack.pilemark_bitmap: pilemark.xbm
-!NetHack.pilemark_color: Green
 
 ! Tombstone
 ! The image file
@@ -68,13 +63,6 @@ NetHack*message*translations:	<KeyPress>: input()
 ! questions is _not_ used.
 NetHack*slow: True
 
-! If 'slow' is True, setting 'highlight_prompt' to True will cause the line
-! between map and message display that's used for prompting to be "hidden"
-! as part of the map when no prompt is active, then invert foreground and
-! background to stand out when a prompt is issued and waiting for a response.
-! If 'slow' is False, 'highlight_prompt' will have no effect.
-NetHack*highlight_prompt: True
-
 ! The number of lines the message window will show without scrolling.
 !NetHack*message_lines: 12
 !
@@ -94,10 +82,7 @@ NetHack*highlight_prompt: True
 
 ! Parts of the fancy status display.
 !
-NetHack*status_condition1.borderWidth:	0
-NetHack*status_condition2.borderWidth:	0
-NetHack*status_condition3.borderWidth:	0
-NetHack*status_leftover.borderWidth:	0
+NetHack*status_condition.borderWidth:	0
 NetHack*status_info*borderWidth:	0
 
 ! Sample color screen entries.
@@ -116,19 +101,12 @@ NetHack*status_info*background:		wheat
 NetHack*status_info.background:		wheat
 NetHack*status_attributes*foreground:	black
 NetHack*status_attributes*background:	white
-NetHack*status_condition1*foreground:	red
-NetHack*status_condition1*background:	wheat
-NetHack*status_condition2*foreground:	black
-NetHack*status_condition2*background:	wheat
-NetHack*status_condition3*foreground:	black
-NetHack*status_condition3*background:	wheat
+NetHack*status_condition*foreground:	red
+NetHack*status_condition*background:	wheat
 NetHack*Scrollbar*foreground:		Sienna
 NetHack*Scrollbar*background:		wheat
 NetHack*status_info*showGrip:		False
 NetHack*status_attributes*showGrip:	False
-NetHack*status_condition1*showGrip:	False
-NetHack*status_condition2*showGrip:	False
-NetHack*status_condition3*showGrip:	False
 
 NetHack*player_selection*random.borderColor:	blue
 NetHack*player_selection*random.borderWidth:    2
@@ -188,15 +166,6 @@ NetHack*extended_commands*help.accelerators: #override\n\
 				:<Key>?:	set() notify() unset()
 NetHack*extended_commands*dismiss.accelerators: #override\n\
 				<Key>Escape:	set() notify() unset()
-!
-! The extended command menu may be too big to fit on the screen so need
-! a vertical scroll bar.  When truncated, its height will be as tall as
-! possible unless height_delta is non-zero, in which case there will be
-! that many pixels of margin left unused.  On OSX, this can be used to
-! avoid overlapping with the desktop docking tray to prevent that from
-! obscuring the bottom of the menu.
-NetHack*extcmd_height_delta: 75
-
 !
 !
 ! The following are the default 15 colors that the nethack map uses.

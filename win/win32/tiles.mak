@@ -1,5 +1,3 @@
-#$NHDT-Date$  $NHDT-Branch$:$NHDT-Revision$
-
 default: all
 
 all: ..\win\win32\tiles.bmp

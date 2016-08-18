@@ -1,4 +1,3 @@
-/* clang-format off */
 /* XPM */
 static const char *blind_xpm[] = {
 /* width height ncolors chars_per_pixel */
@@ -1405,4 +1404,3 @@ static const char *wis_xpm[] = {
 "oooooooooooooooooooooooooooooooooooooooo",
 "oooooooooooooooooooooooooooooooooooooooo"
 };
-/* clang-format on */

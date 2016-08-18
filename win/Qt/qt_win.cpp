@@ -1,4 +1,4 @@
-// NetHack 3.6	qt_win.cpp	$NHDT-Date$  $NHDT-Branch$:$NHDT-Revision$
+//	SCCS Id: @(#)qt_win.cpp	3.4	1999/11/19
 // Copyright (c) Warwick Allison, 1999.
 // NetHack may be freely redistributed.  See license for details.
 
@@ -133,10 +133,6 @@ extern "C" {
 extern "C" void play_sound_for_message(const char* str);
 #endif
 
-#ifdef SAFERHANGUP
-#include <qtimer.h>
-#endif
-
 // Warwick prefers it this way...
 #define QT_CHOOSE_RACE_FIRST
 
@@ -204,6 +200,7 @@ int qt_compact_mode = 0;
 #endif
 extern const char *enc_stat[]; /* from botl.c */
 extern const char *hu_stat[]; /* from eat.c */
+extern const char *killed_by_prefix[];
 extern int total_tiles_used; // from tile.c
 extern short glyph2tile[]; // from tile.c
 }
@@ -1451,7 +1448,7 @@ int NetHackQtWindow::SelectMenu(int how, MENU_ITEM_P **menu_list) { puts("unexpe
 void NetHackQtWindow::ClipAround(int x,int y) { puts("unexpected ClipAround"); }
 void NetHackQtWindow::PrintGlyph(int x,int y,int glyph) { puts("unexpected PrintGlyph"); }
 //void NetHackQtWindow::PrintGlyphCompose(int x,int y,int,int) { puts("unexpected PrintGlyphCompose"); }
-void NetHackQtWindow::UseRIP(int how, time_t when) { puts("unexpected UseRIP"); }
+void NetHackQtWindow::UseRIP(int how) { puts("unexpected UseRIP"); }
 
 
 
@@ -1481,17 +1478,7 @@ NetHackQtMapWindow::NetHackQtMapWindow(NetHackQtClickBuffer& click_sink) :
 
     updateTiles();
     //setFocusPolicy(StrongFocus);
-#ifdef SAFERHANGUP
-    QTimer* deadman = new QTimer(this);
-    connect(deadman, SIGNAL(timeout()), SLOT(timeout()));
-    deadman->start(2000);		// deadman timer every 2 seconds
-#endif
 }
-
-#ifdef SAFERHANGUP
-// The "deadman" timer is received by this slot
-void NetHackQtMapWindow::timeout() {}
-#endif
 
 void NetHackQtMapWindow::moveMessages(int x, int y)
 {
@@ -1605,7 +1592,7 @@ const QPen& nhcolor_to_pen(int c)
     static QPen* pen=0;
     if ( !pen ) {
 	pen = new QPen[17];
-	pen[0] = QColor(24,24,24); // "black" on black
+	pen[0] = Qt::black;
 	pen[1] = Qt::red;
 	pen[2] = QColor(0,191,0);
 	pen[3] = QColor(127,127,0);
@@ -1621,7 +1608,7 @@ const QPen& nhcolor_to_pen(int c)
 	pen[13] = QColor(255,127,255);
 	pen[14] = QColor(127,255,255);
 	pen[15] = Qt::white;
-	pen[16] = QColor(24,24,24); // "black" on black
+	pen[16] = Qt::black;
     }
 
     return pen[c];
@@ -1643,7 +1630,12 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 
     painter.begin(this);
 
-    if (Is_rogue_level(&u.uz) || iflags.wc_ascii_map)
+    if (
+#ifdef REINCARNATION
+	Is_rogue_level(&u.uz) ||
+#endif
+	iflags.wc_ascii_map
+    )
     {
 	// You enter a VERY primitive world!
 
@@ -1683,7 +1675,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 
 		painter.setPen( green );
 		/* map glyph to character and color */
-    		(void)mapglyph(g, &och, &color, &special, i, j);
+    		mapglyph(g, &och, &color, &special, i, j);
 		ch = (uchar)och;
 #ifdef TEXTCOLOR
 		painter.setPen( nhcolor_to_pen(color) );
@@ -1724,6 +1716,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
     }
 
     if (garea.contains(cursor)) {
+#ifdef REINCARNATION
 	if (Is_rogue_level(&u.uz)) {
 #ifdef TEXTCOLOR
 	    painter.setPen( white );
@@ -1731,6 +1724,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 	    painter.setPen( green ); // REALLY primitive
 #endif
 	} else
+#endif
 	{
 	    int hp100;
 	    if (u.mtimedone) {
@@ -2183,7 +2177,7 @@ tryload(QPixmap& pm, const char* fn)
     if (!pm.load(fn)) {
 	QString msg;
 	msg.sprintf("Cannot load \"%s\"", fn);
-	QMessageBox::warning(0, "IO Error", msg);
+	QMessageBox::warning(qApp->mainWidget(), "IO Error", msg);
     }
 }
 
@@ -2549,7 +2543,11 @@ void NetHackQtStatusWindow::updateStats()
 	dlevel.setLabel(buf,(long)depth(&u.uz));
     }
 
+#ifndef GOLDOBJ
+    gold.setLabel("Au:", u.ugold);
+#else
     gold.setLabel("Au:", money_cnt(invent));
+#endif
     if (u.mtimedone) {
 	// You're a monster!
 
@@ -2566,9 +2564,11 @@ void NetHackQtStatusWindow::updateStats()
     Sprintf(buf, "/%d", u.uenmax);
     power.setLabel("Pow:",u.uen,buf);
     ac.setLabel("AC:",(long)u.uac);
+#ifdef EXP_ON_BOTL
     if (::flags.showexp) {
 	exp.setLabel("Exp:",(long)u.uexp);
     } else
+#endif
     {
 	exp.setLabel("");
     }
@@ -2845,7 +2845,7 @@ int NetHackQtMenuWindow::SelectMenu(int h, MENU_ITEM_P **menu_list)
     how=h;
 
     ok->setEnabled(how!=PICK_ONE);ok->setDefault(how!=PICK_ONE);
-    cancel->setEnabled(TRUE);
+    cancel->setEnabled(how!=PICK_NONE);
     all->setEnabled(how==PICK_ANY);
     none->setEnabled(how==PICK_ANY);
     invert->setEnabled(how==PICK_ANY);
@@ -2908,10 +2908,7 @@ int NetHackQtMenuWindow::SelectMenu(int h, MENU_ITEM_P **menu_list)
 	keysource.GetAscii();
 
     *menu_list=0;
-    if (how==PICK_NONE)
-	return result==0 ? -1 : 0;
-
-    if (result>0) {
+    if (result>0 && how!=PICK_NONE) {
 	if (how==PICK_ONE) {
 	    int i;
 	    for (i=0; i<itemcount && !item[i].selected; i++)
@@ -3261,7 +3258,7 @@ bool NetHackQtTextWindow::Destroy()
     return !isVisible();
 }
 
-void NetHackQtTextWindow::UseRIP(int how, time_t when)
+void NetHackQtTextWindow::UseRIP(int how)
 {
 // Code from X11 windowport
 #define STONE_LINE_LEN 16    /* # chars that fit on one line */
@@ -3283,16 +3280,32 @@ static char** rip_line=0;
     char buf[BUFSZ];
     char *dpx;
     int line;
-    long year;
 
     /* Put name on stone */
     Sprintf(rip_line[NAME_LINE], "%s", plname);
 
     /* Put $ on stone */
+#ifndef GOLDOBJ
+    Sprintf(rip_line[GOLD_LINE], "%ld Au", u.ugold);
+#else
     Sprintf(rip_line[GOLD_LINE], "%ld Au", done_money);
+#endif
 
     /* Put together death description */
-    formatkiller(buf, sizeof buf, how);
+    switch (killer_format) {
+	default: impossible("bad killer format?");
+	case KILLED_BY_AN:
+	    Strcpy(buf, killed_by_prefix[how]);
+	    Strcat(buf, an(killer));
+	    break;
+	case KILLED_BY:
+	    Strcpy(buf, killed_by_prefix[how]);
+	    Strcat(buf, killer);
+	    break;
+	case NO_KILLER_PREFIX:
+	    Strcpy(buf, killer);
+	    break;
+    }
 
     /* Put death type on stone */
     for (line=DEATH_LINE, dpx = buf; line<YEAR_LINE; line++) {
@@ -3315,8 +3328,7 @@ static char** rip_line=0;
     }
 
     /* Put year on stone */
-    year = yyyymmdd(when) / 10000L;
-    Sprintf(rip_line[YEAR_LINE], "%4ld", year);
+    Sprintf(rip_line[YEAR_LINE], "%4d", getyear());
 
     rip.setLines(rip_line,YEAR_LINE+1);
 
@@ -3351,7 +3363,7 @@ void NetHackQtTextWindow::Display(bool block)
 	rip.hide();
     }
     int mh = QApplication::desktop()->height()*3/5;
-    if ( qt_compact_mode && (lines->TotalHeight() > mh || use_rip) ) {
+    if ( qt_compact_mode && lines->TotalHeight() > mh || use_rip ) {
 	// big, so make it fill
 	showMaximized();
     } else {
@@ -3480,8 +3492,13 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
     drawWorn(painter,uarms,0,1); // Shield
     drawWorn(painter,uarmg,0,2); // Gloves - repeated
     drawWorn(painter,uarmg,2,2); // Gloves - repeated
+#ifdef TOURIST
     drawWorn(painter,uarmf,1,5); // Shoes (feet)
     drawWorn(painter,uarmu,1,4); // Undershirt
+#else
+    drawWorn(painter,0    ,1,5,FALSE);
+    drawWorn(painter,uarmf,1,4); // Shoes (feet)
+#endif
     drawWorn(painter,uleft,0,3); // RingL
     drawWorn(painter,uright,2,3); // RingR
 
@@ -3584,35 +3601,35 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 	{ apparel,	"Put on non-armour\tShift+P", "P", 3},
 	{ apparel,	"Remove non-armour\tShift+R", "R", 3},
 
-	{ act1,	"Again\tCtrl+A",        "\001", 2},
+	{ act1,	"Again\tCtrl+A",           "\001", 2},
 	{ act1,	0, 0, 3},
 	{ act1,	"Apply\ta?",            "a?", 3},
-	{ act1,	"Chat\tAlt+C",          "\343", 3},
+	{ act1,	"Chat\tAlt+C",            "\343", 3},
 	{ act1,	"Close door\tc",        "c", 3},
 	{ act1,	"Down\t>",              ">", 3},
-	{ act1,	"Drop many\tShift+D",   "D", 2},
+	{ act1,	"Drop many\tShift+D",         "D", 2},
 	{ act1,	"Drop\td?",             "d?", 2},
 	{ act1,	"Eat\te?",              "e?", 2},
-	{ act1,	"Engrave\tShift+E",     "E", 3},
-	{ act1,	"Fight\tShift+F",       "F", 3},
+	{ act1,	"Engrave\tShift+E",           "E", 3},
+	{ act1,	"Fight\tShift+F",             "F", 3},
 	{ act1,	"Fire from quiver\tf",  "f", 2},
-	{ act1,	"Force\tAlt+F",         "\346", 3},
+	{ act1,	"Force\tAlt+F",           "\346", 3},
 	{ act1,	"Get\t,",               ",", 2},
-	{ act1,	"Jump\tAlt+J",          "\352", 3},
-	{ act2,	"Kick\tCtrl+D",         "\004", 2},
-	{ act2,	"Loot\tAlt+L",          "\354", 3},
+	{ act1,	"Jump\tAlt+J",            "\352", 3},
+	{ act2,	"Kick\tCtrl+D",              "\004", 2},
+	{ act2,	"Loot\tAlt+L",            "\354", 3},
 	{ act2,	"Open door\to",         "o", 3},
 	{ act2,	"Pay\tp",               "p", 3},
 	{ act2,	"Rest\t.",              ".", 2},
 	{ act2,	"Ride\t#ri",            "#ri", 3},
 	{ act2,	"Search\ts",            "s", 3},
-	{ act2,	"Sit\tAlt+S",           "\363", 3},
+	{ act2,	"Sit\tAlt+S",             "\363", 3},
 	{ act2,	"Throw\tt",             "t", 2},
-	{ act2,	"Untrap\t#u",           "#u", 3},
+	{ act2,	"Untrap\t#u",             "#u", 3},
 	{ act2,	"Up\t<",                "<", 3},
-	{ act2,	"Wipe face\tAlt+W",     "\367", 3},
+	{ act2,	"Wipe face\tAlt+W",       "\367", 3},
 
-	{ magic,	"Quaff potion\tq?",      "q?", 3},
+	{ magic,	"Quaff potion\tq?",     "q?", 3},
 	{ magic,	"Read scroll/book\tr?", "r?", 3},
 	{ magic,	"Zap wand\tz?",         "z?", 3},
 	{ magic,	"Zap spell\tShift+Z",        "Z", 3},
@@ -3961,7 +3978,7 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 	event->key() >= Key_Left && event->key() <= Key_Down )
 	return;
 
-    const char* d = Cmd.dirchars;
+    const char* d = iflags.num_pad ? ndir : sdir; 
     switch (event->key()) {
      case Key_Up:
 	if ( dirkey == d[0] )
@@ -4107,7 +4124,7 @@ char NetHackQtYnDialog::Exec()
 	}
 	if ( strstr(question, "what direction") ) {
 	    // We replace this regardless, since sometimes you get choices.
-	    const char* d = Cmd.dirchars;
+	    const char* d = iflags.num_pad ? ndir : sdir; 
 	    enable=ch;
 	    ch="";
 	    ch.append(d[1]);
@@ -4832,7 +4849,7 @@ void NetHackQtBind::qt_cliparound_window(winid wid, int x, int y)
     NetHackQtWindow* window=id_to_window[wid];
     window->ClipAround(x,y);
 }
-void NetHackQtBind::qt_print_glyph(winid wid,XCHAR_P x,XCHAR_P y,int glyph, int bkglyph)
+void NetHackQtBind::qt_print_glyph(winid wid,XCHAR_P x,XCHAR_P y,int glyph)
 {
     NetHackQtWindow* window=id_to_window[wid];
     window->PrintGlyph(x,y,glyph);
@@ -4860,17 +4877,10 @@ int NetHackQtBind::qt_nhgetch()
 
     // Process events until a key arrives.
     //
-    while (keybuffer.Empty()
-#ifdef SAFERHANGUP
-	   && !program_state.done_hup
-#endif
-	   ) {
+    while (keybuffer.Empty()) {
 	qApp->enter_loop();
     }
 
-#ifdef SAFERHANGUP
-    if (program_state.done_hup && keybuffer.Empty()) return '\033';
-#endif
     return keybuffer.GetAscii();
 }
 
@@ -4881,16 +4891,9 @@ int NetHackQtBind::qt_nh_poskey(int *x, int *y, int *mod)
 
     // Process events until a key or map-click arrives.
     //
-    while (keybuffer.Empty() && clickbuffer.Empty()
-#ifdef SAFERHANGUP
-	   && !program_state.done_hup
-#endif
-	   ) {
+    while (keybuffer.Empty() && clickbuffer.Empty()) {
 	qApp->enter_loop();
     }
-#ifdef SAFERHANGUP
-    if (program_state.done_hup && keybuffer.Empty()) return '\033';
-#endif
     if (!keybuffer.Empty()) {
 	return keybuffer.GetAscii();
     } else {
@@ -4929,11 +4932,8 @@ char NetHackQtBind::qt_yn_function(const char *question, const char *choices, CH
 		// anything beyond <esc> is hidden
 		*cb = '\0';
 	    }
-	    (void)strncpy(message, question, QBUFSZ-1);
-	    message[QBUFSZ-1] = '\0';
-	    Sprintf(eos(message), " [%s]", choicebuf);
-	    if (def) Sprintf(eos(message), " (%c)", def);
-	    Strcat(message, " ");
+	    Sprintf(message, "%s [%s] ", question, choicebuf);
+	    if (def) Sprintf(eos(message), "(%c) ", def);
 	    // escape maps to 'q' or 'n' or default, in that order
 	    yn_esc_map = (index(choices, 'q') ? 'q' :
 		     (index(choices, 'n') ? 'n' : def));
@@ -5121,11 +5121,11 @@ void NetHackQtBind::qt_end_screen()
     // Ignore.
 }
 
-void NetHackQtBind::qt_outrip(winid wid, int how, time_t when)
+void NetHackQtBind::qt_outrip(winid wid, int how)
 {
     NetHackQtWindow* window=id_to_window[wid];
 
-    window->UseRIP(how, when);
+    window->UseRIP(how);
 }
 
 bool NetHackQtBind::notify(QObject *receiver, QEvent *event)
@@ -5137,13 +5137,6 @@ bool NetHackQtBind::notify(QObject *receiver, QEvent *event)
 	return TRUE;
 
     bool result=QApplication::notify(receiver,event);
-#ifdef SAFERHANGUP
-    if (program_state.done_hup) {
-	keybuffer.Put('\033');
-	qApp->exit_loop();
-	return TRUE;
-    }
-#endif
     if (event->type()==QEvent::KeyPress) {
 	QKeyEvent* key_event=(QKeyEvent*)event;
 
@@ -5160,7 +5153,7 @@ bool NetHackQtBind::notify(QObject *receiver, QEvent *event)
 	    }
 	    char ch=key_event->ascii();
 	    if ( !ch && (key_event->state() & Qt::ControlButton) ) {
-		// On Mac, it aint-ncessarily-control
+		// On Mac, ascii control codes are not sent, force them.
 		if ( k>=Qt::Key_A && k<=Qt::Key_Z )
 		    ch = k - Qt::Key_A + 1;
 	    }
@@ -5210,7 +5203,6 @@ struct window_procs Qt_procs = {
     NetHackQtBind::qt_destroy_nhwindow,
     NetHackQtBind::qt_curs,
     NetHackQtBind::qt_putstr,
-    genl_putmixed,
     NetHackQtBind::qt_display_file,
     NetHackQtBind::qt_start_menu,
     NetHackQtBind::qt_add_menu,
@@ -5252,17 +5244,6 @@ struct window_procs Qt_procs = {
     genl_outrip,
 #endif
     genl_preference_update,
-    genl_getmsghistory,
-    genl_putmsghistory,
-#ifdef STATUS_VIA_WINDOWPORT
-    genl_status_init,
-    genl_status_finish,
-    genl_status_enablefield,
-    genl_status_update,
-# ifdef STATUS_HILITES
-    genl_status_threshold,
-# endif
-#endif
 };
 
 extern "C" void play_usersound(const char* filename, int volume)

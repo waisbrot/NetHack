@@ -1,21 +1,24 @@
-# $NHDT-Date$  $NHDT-Branch$:$NHDT-Revision$
+#Set all of these or none of them
+#YACC   = byacc.exe
+#LEX	= flex.exe
+#YTABC   = y_tab.c
+#YTABH   = y_tab.h
+#LEXYYC  = lexyy.c
 
-# Set all of these or none of them.
-#
-# bison and flex are the ones found in GnuWin32, which
-# is probably the easiest set of these tools to find
-# on Windows.
-# 
-#YACC    = bison.exe -y
-#LEX     = flex.exe 
-#YTABC   = y.tab.c 
-#YTABH   = y.tab.h 
-#LEXYYC  = lex.yy.c 
+!IF "$(YACC)"!=""
+@echo Yacc-alike set to $(YACC)
+@echo YTABC set to $(YTABC)
+@echo YTABH set to $(YTABH)
+!ENDIF
 
+!IF "$(LEX)"!=""
+@echo Lex-alike set to $(LEX)
+@echo LEXYYC set to $(LEXYYC)
+!ENDIF
 
 default: all
 
-all: tools ..\util\dgn_yacc.c ..\util\dgn_lex.c
+all: ..\util\dgn_yacc.c ..\util\dgn_lex.c
 
 rebuild: clean all
 
@@ -23,19 +26,6 @@ clean:
 	-del ..\util\dgn_lex.c
 	-del ..\util\dgn_yacc.c
 	-del ..\include\dgn_comp.h
-
-tools:
-!IFDEF YACC
-	@echo Yacc-alike set to $(YACC)
-	@echo YTABC set to $(YTABC)
-	@echo YTABH set to $(YTABH)
-!ENDIF
-
-!IFDEF LEX
-	@echo Lex-alike set to $(LEX)
-	@echo LEXYYC set to $(LEXYYC)
-!ENDIF
-
 
 #==========================================
 # Dungeon Compiler Stuff
