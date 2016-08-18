@@ -408,6 +408,10 @@ fixup_special()
 	/* KMH -- Sokoban levels */
 	if(In_sokoban(&u.uz))
 		sokoban_detect();
+        // BEGIN POOL CHALLENGE CODE
+        if(Is_pool_level(&u.uz))
+                sokoban_detect();
+        // END POOL CHALLENGE CODE
 
     /* Still need to add some stuff to level file */
     if (Is_medusa_level(&u.uz)) {

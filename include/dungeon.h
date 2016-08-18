@@ -105,6 +105,12 @@ typedef struct branch {
 #define Is_airlevel(x)		(on_level(x, &air_level))
 #define Is_medusa_level(x)	(on_level(x, &medusa_level))
 #define Is_oracle_level(x)	(on_level(x, &oracle_level))
+//BEGIN GRUE/PACMAN/DIGDUG/POOL CHALLENGE CODE
+#define Is_gruelair_level(x)	(on_level(x, &gruelair_level))
+#define Is_pmaze_level(x)	(on_level(x, &pmaze_level))
+#define Is_dmaze_level(x)	(on_level(x, &dmaze_level))
+#define Is_pool_level(x)        (on_level(x, &pool_level))
+//END GRUE/PACMAN/DIGDUG/POOL CHALLENGE CODE
 #define Is_valley(x)		(on_level(x, &valley_level))
 #define Is_juiblex_level(x)	(on_level(x, &juiblex_level))
 #define Is_asmo_level(x)	(on_level(x, &asmodeus_level))
@@ -121,6 +127,10 @@ typedef struct branch {
 #define Is_qlocate(x)		(on_level(x, &qlocate_level))
 #define Is_nemesis(x)		(on_level(x, &nemesis_level))
 #define Is_knox(x)		(on_level(x, &knox_level))
+#ifdef RECORD_ACHIEVE
+#define Is_mineend_level(x)     (on_level(x, &mineend_level))
+#define Is_sokoend_level(x)     (on_level(x, &sokoend_level))
+#endif
 
 #define In_sokoban(x)		((x)->dnum == sokoban_dnum)
 #define Inhell			In_hell(&u.uz)	/* now gehennom */

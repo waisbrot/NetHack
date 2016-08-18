@@ -25,6 +25,9 @@ E void NDECL(stop_occupation);
 E void NDECL(display_gamewindows);
 E void NDECL(newgame);
 E void FDECL(welcome, (BOOLEAN_P));
+#if defined(RECORD_REALTIME) || defined(REALTIME_ON_BOTL)
+E time_t NDECL(get_realtime);
+#endif
 
 /* ### apply.c ### */
 
@@ -1405,6 +1408,9 @@ E void FDECL(set_option_mod_status, (const char *,int));
 E int FDECL(add_autopickup_exception, (const char *));
 E void NDECL(free_autopickup_exceptions);
 #endif /* AUTOPICKUP_EXCEPTIONS */
+#ifdef MENU_COLOR
+E boolean FDECL(add_menu_coloring, (char *));
+#endif /* MENU_COLOR */
 
 /* ### pager.c ### */
 
@@ -2379,6 +2385,9 @@ E void FDECL(destroy_item, (int,int));
 E int FDECL(destroy_mitem, (struct monst *,int,int));
 E int FDECL(resist, (struct monst *,CHAR_P,int,int));
 E void NDECL(makewish);
+//BEGIN ZAPM CHALLENGE CODE
+E void NDECL(makewish_standard);
+//END ZAPM CHALLENGE CODE
 
 #endif /* !MAKEDEFS_C && !LEV_LEX_C */
 

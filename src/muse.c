@@ -373,7 +373,7 @@ struct monst *mtmp;
 		if ((xx==x && yy==y) || !level.monsters[xx][yy])
 		if ((t = t_at(xx,yy)) != 0)
 		if ((verysmall(mtmp->data) || throws_rocks(mtmp->data) ||
-		     passes_walls(mtmp->data)) || !sobj_at(BOULDER, xx, yy))
+		     passes_walls(mtmp->data)) || !(sobj_at(BOULDER, xx, yy)||sobj_at(CUE_BOULDER,xx,yy)))
 		if (!onscary(xx,yy,mtmp)) {
 			if ((t->ttyp == TRAPDOOR || t->ttyp == HOLE)
 				&& !is_floater(mtmp->data)

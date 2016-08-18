@@ -253,7 +253,9 @@
 # endif
 #endif
 #if defined(BSD_JOB_CONTROL) || defined(POSIX_JOB_CONTROL) || defined(AUX)
-#define SUSPEND		/* let ^Z suspend the game */
+//BEGIN TOURNAMENT CODE
+//#define SUSPEND		/* let ^Z suspend the game */
+//END TOURNAMENT CODE
 #endif
 
 
@@ -270,7 +272,9 @@
 #endif
 #define tgetch getchar
 
-#define SHELL		/* do not delete the '!' command */
+//BEGIN TOURNAMENT CODE
+//#define SHELL		/* do not delete the '!' command */
+//END TOURNAMENT CODE
 
 #include "system.h"
 

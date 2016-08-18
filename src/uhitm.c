@@ -986,6 +986,27 @@ int thrown;
 	    }
 	}
 
+//BEGIN PACMAN/DEGDUG CHALLENGE CODE
+	if((mon->mnum == PM_BLINKY) || (mon->mnum == PM_PINKY)
+		|| (mon->mnum == PM_INKY) || (mon->mnum == PM_CLYDE))
+	{
+		if(mon->mflee)
+		{
+			pline("Energized!");
+			mon->mhp = 0;
+		}
+		else
+		{
+			pline("Careful!");
+		}
+	}
+
+	if((mon->mnum == PM_FYGAR) || (mon->mnum == PM_POOKA))
+	{
+		pline("Careful!");
+	}
+//END PACMAN/DIGDUG CHALLENGE CODE
+
 	if (!already_killed) mon->mhp -= tmp;
 	/* adjustments might have made tmp become less than what
 	   a level draining artifact has already done to max HP */

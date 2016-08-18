@@ -27,7 +27,11 @@ extern char *viz_rmax;			/* max could see indices */
  *  couldsee()	- Returns true if the hero has a clear line of sight to
  *		  the location.
  */
+//BEGIN PACMAN/DIGDUG CHALLENGE CODE
+//#define cansee(x,y)	((Is_pmaze_level(&u.uz)) || (Is_dmaze_level(&u.uz)) || (viz_array[y][x] & IN_SIGHT))
+//#define cansee(x,y)	((Is_pmaze_level(&u.uz) && (Is_dmaze_level(&u.uz) && levl[x][y].lit) || (viz_array[y][x] & IN_SIGHT))
 #define cansee(x,y)	(viz_array[y][x] & IN_SIGHT)
+//END PACMAN/DIGDUG CHALLENGE CODE
 #define couldsee(x,y)	(viz_array[y][x] & COULD_SEE)
 #define templit(x,y)	(viz_array[y][x] & TEMP_LIT)
 

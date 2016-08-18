@@ -521,6 +521,11 @@ boolean artif;
 		case DRUM_OF_EARTHQUAKE:
 					otmp->spe = rn1(5,4);
 					break;
+                // BEGIN POOL CHALLENGE CODE
+                case CUE_STICK:
+                                        otmp->spe = 100;
+                                        break;
+                // END POOL CHALLENGE CODE
 	    }
 	    break;
 	case AMULET_CLASS:
@@ -1261,7 +1266,8 @@ register struct obj *otmp;
 
     if (otmp->where != OBJ_FLOOR)
 	panic("remove_object: obj not on floor");
-    if (otmp->otyp == BOULDER) unblock_point(x,y); /* vision */
+    // POOL CHALLENGE CODE
+    if (otmp->otyp == BOULDER || otmp->otyp == CUE_BOULDER) unblock_point(x,y); /* vision */
     extract_nexthere(otmp, &level.objects[x][y]);
     extract_nobj(otmp, &fobj);
     if (otmp->timed) obj_timer_checks(otmp,x,y,0);

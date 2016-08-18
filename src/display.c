@@ -717,8 +717,13 @@ newsym(x,y)
 	    if (senseself()) display_self();
 	}
 	else if ((mon = m_at(x,y))
-		&& ((see_it = (tp_sensemon(mon) || MATCH_WARN_OF_MON(mon)
-		    		|| (see_with_infrared(mon) && mon_visible(mon))))
+//BEGIN PACMAN/DIGDUG CHALLENGE CODE
+                && ((see_it = (Is_pmaze_level(&u.uz) || Is_dmaze_level(&u.uz)
+                        || tp_sensemon(mon) || MATCH_WARN_OF_MON(mon)
+                        || (see_with_infrared(mon) && mon_visible(mon))))
+//		&& ((see_it = (tp_sensemon(mon) || MATCH_WARN_OF_MON(mon)
+//		    		|| (see_with_infrared(mon) && mon_visible(mon))))
+//END PACMAN/DIGDUG CHALLENGE CODE
 		    || Detect_monsters)
 		&& !is_worm_tail(mon)) {
 	    /* Monsters are printed every time. */

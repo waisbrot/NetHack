@@ -1139,7 +1139,7 @@ nexttry:	/* eels prefer the water, but if there is no water nearby,
 			if(flag & NOGARLIC) continue;
 			info[cnt] |= NOGARLIC;
 		}
-		if(checkobj && sobj_at(BOULDER, nx, ny)) {
+		if(checkobj && (sobj_at(BOULDER, nx, ny) || sobj_at(CUE_BOULDER, nx, ny))) {
 			if(!(flag & ALLOW_ROCK)) continue;
 			info[cnt] |= ALLOW_ROCK;
 		}
@@ -1481,6 +1481,12 @@ register struct monst *mtmp;
 #endif
 	if(mtmp->iswiz) wizdead();
 	if(mtmp->data->msound == MS_NEMESIS) nemdead();
+        
+#ifdef RECORD_ACHIEVE
+        if(mtmp->data == &mons[PM_MEDUSA])
+            achieve.killed_medusa = 1;
+#endif
+
 	if(glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
 	    unmap_object(mtmp->mx, mtmp->my);
 	m_detach(mtmp, mptr);

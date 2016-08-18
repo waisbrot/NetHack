@@ -5,6 +5,9 @@
 #ifndef CONFIG_H /* make sure the compiler does not see the typedefs twice */
 #define CONFIG_H
 
+//BEGIN TOURNAMENT CODE
+#define WIZARD "nhadmin"
+//END TOURNAMENT CODE
 
 /*
  * Section 1:	Operating and window systems selection.
@@ -48,6 +51,8 @@
 /* #define GNOME_GRAPHICS */	/* Gnome interface */
 /* #define MSWIN_GRAPHICS */	/* Windows NT, CE, Graphics */
 
+#define VTILES /* TTY-based tiles */
+
 /*
  * Define the default window system.  This should be one that is compiled
  * into your system (see defines above).  Known window systems are:
@@ -80,6 +85,12 @@
 #ifndef HACKDIR	/* override the default hackdir below */
 # define HACKDIR "/boot/apps/NetHack"
 #endif
+#endif
+
+#ifdef TTY_GRAPHICS
+# ifdef VTILES
+#  define DEFAULT_WC_TILED_MAP   
+# endif
 #endif
 
 #ifdef QT_GRAPHICS
@@ -151,6 +162,7 @@
 #endif
 
 #define LOGFILE "logfile"	/* larger file for debugging purposes */
+#define XLOGFILE "xlogfile" /* even larger logfile */
 #define NEWS "news"		/* the file containing the latest hack news */
 #define PANICLOG "paniclog"	/* log of panic and impossible events */
 
@@ -167,14 +179,16 @@
  *	compression.
  */
 
+//BEGIN TOURNAMENT CODE
 #ifdef UNIX
 /* path and file name extension for compression program */
-#define COMPRESS "/usr/bin/compress"	/* Lempel-Ziv compression */
-#define COMPRESS_EXTENSION ".Z"		/* compress's extension */
+/* #define COMPRESS "/usr/bin/compress"	/* Lempel-Ziv compression */
+/* #define COMPRESS_EXTENSION ".Z"	/* compress's extension */
 /* An example of one alternative you might want to use: */
-/* #define COMPRESS "/usr/local/bin/gzip" */	/* FSF gzip compression */
-/* #define COMPRESS_EXTENSION ".gz" */		/* normal gzip extension */
+#define COMPRESS "/usr/local/bin/gzip" 	/* FSF gzip compression */
+#define COMPRESS_EXTENSION ".gz"	/* normal gzip extension */
 #endif
+//END TOURNAMENT CODE
 
 #ifndef COMPRESS
 # define INTERNAL_COMP	/* control use of NetHack's compression routines */
@@ -338,7 +352,30 @@ typedef unsigned char	uchar;
 #endif
 
 #define EXP_ON_BOTL	/* Show experience on bottom line */
-/* #define SCORE_ON_BOTL */	/* added by Gary Erickson (erickson@ucivax) */
+//BEGIN TOURNAMENT CODE
+#define SCORE_ON_BOTL 	/* added by Gary Erickson (erickson@ucivax) */
+//END TOURNAMENT CODE
+
+/* #define REALTIME_ON_BOTL */  /* Show elapsed time on bottom line.  Note:
+                                 * this breaks savefile compatibility. */
+
+/* The options in this section require the extended logfile support */
+#ifdef XLOGFILE
+#define RECORD_CONDUCT  /* Record conducts kept in logfile */
+#define RECORD_TURNS    /* Record turns elapsed in logfile */
+#define RECORD_ACHIEVE  /* Record certain notable achievements in the
+                         * logfile.  Note: this breaks savefile compatibility
+                         * due to the addition of the u_achieve struct. */
+#define RECORD_REALTIME /* Record the amount of actual playing time (in
+                         * seconds) in the record file.  Note: this breaks
+                         * savefile compatibility. */
+#define RECORD_START_END_TIME /* Record to-the-second starting and ending
+                               * times; stored as 32-bit values obtained
+                               * from time(2) (seconds since the Epoch.) */
+#define RECORD_GENDER0   /* Record initial gender in logfile */
+#define RECORD_ALIGN0   /* Record initial alignment in logfile */
+#define RECORD_EXTINCTIONISM /* Record extinction count, kills in logfile */
+#endif
 
 /*
  * Section 5:  EXPERIMENTAL STUFF
@@ -348,8 +385,25 @@ typedef unsigned char	uchar;
  * bugs left here.
  */
 
+#if defined(TTY_GRAPHICS) || defined(MSWIN_GRAPHICS)
+# define MENU_COLOR
+# define MENU_COLOR_REGEX
+# define MENU_COLOR_REGEX_POSIX
+/* if MENU_COLOR_REGEX is defined, use regular expressions (regex.h,
+ * GNU specific functions by default, POSIX functions with
+ * MENU_COLOR_REGEX_POSIX).
+ * otherwise use pmatch() to match menu color lines.
+ * pmatch() provides basic globbing: '*' and '?' wildcards.
+ */
+#endif
+
+#define STATUS_COLORS
+
 /*#define GOLDOBJ */	/* Gold is kept on obj chains - Helge Hafting */
 /*#define AUTOPICKUP_EXCEPTIONS */ /* exceptions to autopickup */
+//BEGIN TOURNAMENT CODE
+#define AUTOPICKUP_EXCEPTIONS  /* exceptions to autopickup */
+//END TOURNAMENT CODE
 
 /* End of Section 5 */
 

@@ -293,6 +293,21 @@ BOW("crossbow", (char *)0,	1, 45, 50, 40, 0, WOOD, P_CROSSBOW, HI_WOOD),
 	ARMOR(name,desc,kn,mgc,0,power,prob,delay,wt,cost,ac,can,ARM_BOOTS,metal,c)
 
 /* helmets */
+//BEGIN WALDO CHALLENGE CODE
+//#define ARMOR(name,desc,kn,mgc,blk,power,prob,delay,wt,cost,ac,can,sub,metal,c) \
+//	OBJECT( \
+//		OBJ(name,desc), BITS(kn,0,1,0,mgc,1,0,0,blk,0,0,sub,metal), power, \
+//		ARMOR_CLASS, prob, delay, wt, cost, \
+//		0, 0, 10 - ac, can, wt, c )
+//#define HELM(name,desc,kn,mgc,power,prob,delay,wt,cost,ac,can,metal,c) \
+//	ARMOR(name,desc,kn,mgc,0,power,prob,delay,wt,cost,ac,can,ARM_HELM,metal,c)
+OBJECT( \
+	OBJ("striped bobble hat","bobble hat"), \
+	BITS(0,0,0,0,0,0,1,1,0,0,0,ARM_HELM,CLOTH), 0, \
+	ARMOR_CLASS, 0, 0, 3, 1, \
+	0, 0, 10, 0, 3, CLR_WHITE ),
+//END WALDO CHALLENGE CODE
+
 HELM("elven leather helm", "leather hat",
 		0, 0,  0,	6, 1,  3,   8, 9, 0, LEATHER, HI_LEATHER),
 HELM("orcish helm", "iron skull cap",
@@ -327,6 +342,21 @@ HELM("helm of telepathy", "visored helmet",
  *	(2) That the order of the dragon scale mail and dragon scales is the
  *	    the same defined in monst.c.
  */
+//BEGIN WALDO CHALLENGE CODE
+//#define ARMOR(name,desc,kn,mgc,blk,power,prob,delay,wt,cost,ac,can,sub,metal,c) \
+//	OBJECT( \
+//		OBJ(name,desc), BITS(kn,0,1,0,mgc,1,0,0,blk,0,0,sub,metal), power, \
+//		ARMOR_CLASS, prob, delay, wt, cost, \
+//		0, 0, 10 - ac, can, wt, c )
+//#define HELM(name,desc,kn,mgc,power,prob,delay,wt,cost,ac,can,metal,c) \
+//	ARMOR(name,desc,kn,mgc,0,power,prob,delay,wt,cost,ac,can,ARM_HELM,metal,c)
+OBJECT( \
+	OBJ("striped sweater","sweater"), \
+	BITS(0,0,0,0,0,0,1,1,0,0,0,ARM_SUIT,CLOTH), 0, \
+	ARMOR_CLASS, 0, 0, 3, 1, \
+	0, 0, 10, 0, 3, CLR_WHITE ),
+//END WALDO CHALLENGE CODE
+
 #define DRGN_ARMR(name,mgc,power,cost,ac,color) \
 	ARMOR(name,(char *)0,1,mgc,1,power,0,5,40,cost,ac,0,ARM_SUIT,DRAGON_HIDE,color)
 /* 3.4.1: dragon scale mail reclassified as "magic" since magic is
@@ -611,6 +641,22 @@ TOOL("mirror", "looking glass", 0, 0, 0, 0,  60, 13,  10, GLASS, HI_SILVER),
 #endif
 TOOL("crystal ball", "glass orb",
 				0, 0, 1, 1,  15,150,  60, GLASS, HI_GLASS),
+
+//BEGIN GRUE/PACMAN/POOL CHALLENGE CODE
+OBJECT(OBJ("Frobozz Company Inter-Dimensional Portal Generator TM",
+        "sinister device"), BITS(0,0,0,0,0,0,1,1,1,1,0,0,PLASTIC), 0,
+        TOOL_CLASS, 0, 0, 20, 1, 0, 0, 0, 0, 20, HI_METAL),
+OBJECT(OBJ("energizer pellet",
+        "shiny pellet"), BITS(0,0,0,0,0,0,1,0,1,1,0,0,PLASTIC), 0,
+        TOOL_CLASS, 0, 0, 20, 1, 0, 0, 0, 0, 20, HI_METAL),
+OBJECT(OBJ("lifegiving bonus fruit",
+        "fruit token"), BITS(0,0,0,0,0,0,1,0,1,1,0,0,PLASTIC), 0,
+        TOOL_CLASS, 0, 0, 20, 1, 0, 0, 0, 0, 20, HI_METAL),
+OBJECT(OBJ("cue stick",
+        "tapered dowel"), BITS(0,0,1,0,0,1,0,0,1,1,IMMEDIATE,0,WOOD), 0,
+        TOOL_CLASS, 0, 0, 20, 1, 4, 4, WHACK, 0, 5, HI_WOOD),
+//END POOL/GRUE/PACMAN CHALLENGE CODE
+
 TOOL("lenses", (char *)0,	1, 0, 0, 0,   5,  3,  80, GLASS, HI_GLASS),
 TOOL("blindfold", (char *)0,    1, 0, 0, 0,  50,  2,  20, CLOTH, CLR_BLACK),
 TOOL("towel", (char *)0,        1, 0, 0, 0,  50,  2,  50, CLOTH, CLR_MAGENTA),
@@ -662,6 +708,7 @@ OBJECT(OBJ("Candelabrum of Invocation", "candelabrum"),
 OBJECT(OBJ("Bell of Opening", "silver bell"),
 		BITS(0,0,1,0,1,1,1,1,0,0,0,P_NONE,SILVER), 0,
 		TOOL_CLASS, 0, 0,10, 5000, 0, 0, 0, 0, 50, HI_SILVER),
+
 #undef TOOL
 #undef WEPTOOL
 
@@ -872,6 +919,14 @@ WAND("cold",           "short",    40, 175, 1, RAY,       IRON,     HI_METAL),
 WAND("sleep",          "runed",    50, 175, 1, RAY,       IRON,     HI_METAL),
 WAND("death",          "long",      5, 500, 1, RAY,       IRON,     HI_METAL),
 WAND("lightning",      "curved",   40, 175, 1, RAY,       IRON,     HI_METAL),
+//BEGIN DIGDUG CHALLENGE CODE
+//#define WAND(name,typ,prob,cost,mgc,dir,metal,color) OBJECT( \
+//	OBJ(name,typ), BITS(0,0,1,0,mgc,1,0,0,0,0,dir,P_NONE,metal), 0, \
+//	WAND_CLASS, prob, 0, 7, cost, 0, 0, 0, 0, 30, color )
+OBJECT(OBJ("dangerously inflate monster, by Namco TM",
+        "plastic"), BITS(0,0,1,0,1,0,0,0,0,0,RAY,P_NONE,PLASTIC), 0,
+        WAND_CLASS, 0, 0, 20, 1, 0, 0, 0, 0, 20, HI_METAL),
+//END DIGDUG CHALLENGE CODE
 WAND((char *)0,        "forked",    0, 150, 1, 0,         WOOD,     HI_WOOD),
 WAND((char *)0,        "spiked",    0, 150, 1, 0,         IRON,     HI_METAL),
 WAND((char *)0,        "jeweled",   0, 150, 1, 0,         IRON,     HI_MINERAL),
@@ -946,6 +1001,10 @@ ROCK("rock", (char *)0,		1,100,  10,  0, 3, 3, 0, 10, 7, MINERAL, CLR_GRAY),
  */
 OBJECT(OBJ("boulder",(char *)0), BITS(1,0,0,0,0,0,0,0,1,0,0,P_NONE,MINERAL), 0,
 		ROCK_CLASS,   100, 0, 6000,  0, 20, 20, 0, 0, 2000, HI_MINERAL),
+// BEGIN POOL CHALLENGE
+OBJECT(OBJ("cue boulder",(char*)0), BITS(1,0,0,0,0,0,0,0,1,0,0,P_NONE,MINERAL), 0,
+                ROCK_CLASS,     0, 0, 6000,  0, 20, 20, 0, 0, 2000, CLR_BRIGHT_MAGENTA),
+// END POOL CHALLENGE
 OBJECT(OBJ("statue", (char *)0), BITS(1,0,0,1,0,0,0,0,0,0,0,P_NONE,MINERAL), 0,
 		ROCK_CLASS,   900, 0, 2500,  0, 20, 20, 0, 0, 2500, CLR_WHITE),
 

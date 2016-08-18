@@ -133,6 +133,9 @@ unsigned *ospecial;
 	    cmap_color(offset);
     } else if ((offset = (glyph - GLYPH_OBJ_OFF)) >= 0) {	/* object */
 	if (offset == BOULDER && iflags.bouldersym) ch = iflags.bouldersym;
+        // BEGIN POOL CHALLENGE
+        else if (offset == CUE_BOULDER) ch = '0';
+        // END POOL CHALLENGE
 	else ch = oc_syms[(int)objects[offset].oc_class];
 #ifdef ROGUE_COLOR
 	if (HAS_ROGUE_IBM_GRAPHICS && iflags.use_color) {

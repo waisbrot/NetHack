@@ -1358,6 +1358,7 @@ boolean telekinesis;	/* not picking it up directly by hand */
 	prinv(nearload == SLT_ENCUMBER ? moderateloadmsg : (char *) 0,
 	      obj, count);
 	mrg_to_wielded = FALSE;
+
 	return 1;
 }
 

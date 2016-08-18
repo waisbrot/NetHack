@@ -18,8 +18,14 @@ DUNGEON:	"The Dungeons of Doom" "D" (25, 5)
 ALIGNMENT:	unaligned
 BRANCH:		"The Gnomish Mines" @ (2, 3)
 %REINCARNATION LEVEL:		"rogue" "R" @ (15, 4)
+#BEGIN POOL CHALLENGE CODE
+BRANCH:    "PoolHall"  @ (4, 0) up
+#END POOL CHALLENGE CODE
 LEVEL:		"oracle" "O" @ (5, 5)
 LEVALIGN:	neutral
+#BEGIN PACMAN CHALLENGE CODE
+CHAINBRANCH:    "PacMan"  "oracle" + (0, 0) portal
+#END PACMAN CHALLENGE CODE
 CHAINBRANCH:	"Sokoban" "oracle" + (1, 0) up
 RNDLEVEL:	"bigrm" "B" @ (10, 3) 40 5
 CHAINBRANCH:	"The Quest" "oracle" + (6, 2) portal
@@ -64,6 +70,24 @@ LEVEL:		"orcus" "O" @ (10, 6)
 LEVEL:		"fakewiz1" "F" @ (-6,4)
 LEVEL:		"fakewiz2" "G" @ (-6,4)
 
+#BEGIN POOL CHALLENGE CODE
+#
+#       The Poolhall Challenge
+#
+DUNGEON:        "PoolHall" "M" (1, 0)
+DESCRIPTION:    mazelike
+LEVEL:          "pool1" "none" @ (1, 0)
+#END POOL CHALLENGE CODE
+
+#BEGIN PACMAN CHALLENGE CODE
+#
+#	The PacMan Challenge
+#
+DUNGEON:	"PacMan" "M" (1, 0)
+DESCRIPTION:	mazelike
+LEVEL:		"pmaze" "none" @ (1,0)
+#END PACMAN CHALLENGE CODE
+
 #
 #	The Mines of the Gnomes of Zurich.
 #
@@ -72,7 +96,22 @@ ALIGNMENT:	lawful
 DESCRIPTION:	mazelike
 RNDLEVEL:	"minetn" "T" @ (3, 2) 7
 LEVELDESC:	town
+#BEGIN GRUE/DIGDUG CHALLENGE CODE
+CHAINBRANCH:    "DigDug" "minetn" + (0, 0) portal
 RNDLEVEL:	"minend" "E" @ (-1, 0) 3
+CHAINBRANCH:    "Grue" "minend" + (0, 0) portal
+
+DUNGEON:        "Grue" "M" (1, 0)
+DESCRIPTION:    mazelike
+LEVEL:          "gruelair" "none" @ (1,0)
+
+#
+#	The DigDug Challenge
+#
+DUNGEON:	"DigDug" "M" (1, 0)
+DESCRIPTION:	mazelike
+LEVEL:		"dmaze" "none" @ (1,0)
+#END GRUE/DIGDUG CHALLENGE CODE
 
 #
 #	The Questdungeon

@@ -620,6 +620,12 @@ die:
 	   it's gone prior to inventory disclosure and creation of bones data */
 	inven_inuse(TRUE);
 
+#ifdef RECORD_REALTIME
+        /* Update the realtime counter to reflect the playtime of the current
+         * game. */
+        realtime_data.realtime = get_realtime();
+#endif /* RECORD_REALTIME */
+
 	/* Sometimes you die on the first move.  Life's not fair.
 	 * On those rare occasions you get hosed immediately, go out
 	 * smiling... :-)  -3.
@@ -979,16 +985,20 @@ char defquery;
 boolean ask;
 {
     register int i, lev;
-    int ntypes = 0, max_lev = 0, nkilled;
+    int ntypes = 0, max_lev = 0, nkilled, extinctioncount = 0;
     long total_killed = 0L;
+    long total_120 = 0L;
     char c;
     winid klwin;
     char buf[BUFSZ];
 
     /* get totals first */
     for (i = LOW_PM; i < NUMMONS; i++) {
-	if (mvitals[i].died) ntypes++;
+        if (mvitals[i].died || (mvitals[i].mvflags & G_EXTINCT)) ntypes++;
 	total_killed += (long)mvitals[i].died;
+        if (mvitals[i].died > 120) total_120 += 120;
+        else total_120 += mvitals[i].died;
+        extinctioncount += !!(mvitals[i].mvflags & G_EXTINCT);
 	if (mons[i].mlevel > max_lev) max_lev = mons[i].mlevel;
     }
 
@@ -1007,7 +1017,9 @@ boolean ask;
 	    /* countdown by monster "toughness" */
 	    for (lev = max_lev; lev >= 0; lev--)
 	      for (i = LOW_PM; i < NUMMONS; i++)
-		if (mons[i].mlevel == lev && (nkilled = mvitals[i].died) > 0) {
+		if (mons[i].mlevel == lev &&
+                    ((nkilled = mvitals[i].died) > 0 ||
+                     (mvitals[i].mvflags & G_EXTINCT))) {
 		    if ((mons[i].geno & G_UNIQ) && i != PM_HIGH_PRIEST) {
 			Sprintf(buf, "%s%s",
 				!type_is_pname(&mons[i]) ? "The " : "",
@@ -1030,6 +1042,8 @@ boolean ask;
 			    Sprintf(buf, "%d %s",
 				    nkilled, makeplural(mons[i].mname));
 		    }
+                    if (mvitals[i].mvflags & G_EXTINCT)
+                      Sprintf(eos(buf), " [extinct]");
 		    putstr(klwin, 0, buf);
 		}
 	    /*
@@ -1039,6 +1053,10 @@ boolean ask;
 	    if (ntypes > 1) {
 		putstr(klwin, 0, "");
 		Sprintf(buf, "%ld creatures vanquished.", total_killed);
+		putstr(klwin, 0, buf);
+		Sprintf(buf, "Extinctions: %d.", extinctioncount);
+		putstr(klwin, 0, buf);
+		Sprintf(buf, "Tournament kills (ignoring kills over 120): %ld.", total_120);
 		putstr(klwin, 0, buf);
 	    }
 	    display_nhwindow(klwin, TRUE);

@@ -622,6 +622,12 @@ struct level_map {
 	{ "knox",	&knox_level },
 	{ "medusa",	&medusa_level },
 	{ "oracle",	&oracle_level },
+//BEGIN GRUE/PACMAN/DIGDUG CHALLENGE CODE
+	{ "gruelair",	&gruelair_level },
+	{ "pmaze",	&pmaze_level },
+	{ "dmaze",	&dmaze_level },
+        { "pool1",      &pool_level },
+//END GRUE/PACMAN/DIGDUG CHALLENGE CODE
 	{ "orcus",	&orcus_level },
 #ifdef REINCARNATION
 	{ "rogue",	&rogue_level },
@@ -632,6 +638,10 @@ struct level_map {
 	{ "wizard1",	&wiz1_level },
 	{ "wizard2",	&wiz2_level },
 	{ "wizard3",	&wiz3_level },
+#ifdef RECORD_ACHIEVE
+        { "minend",     &mineend_level },
+        { "soko1",      &sokoend_level },
+#endif
 	{ X_START,	&qstart_level },
 	{ X_LOCATE,	&qlocate_level },
 	{ X_GOAL,	&nemesis_level },

@@ -44,6 +44,10 @@ register struct attack *mattk;
 {
 	int compat;
 
+//BEGIN DIGDUG CHALLENGE CODE
+	d_level	digdugchallenge_level;
+//END DIGDUG CHALLENGE CODE
+
 	/* Note: if opposite gender, "seductively" */
 	/* If same gender, "engagingly" for nymph, normal msg for others */
 	if((compat = could_seduce(mtmp, &youmonst, mattk))
@@ -67,8 +71,49 @@ register struct attack *mattk;
 			pline("%s butts!", Monnam(mtmp));
 			break;
 		case AT_TUCH:
-			pline("%s touches you!", Monnam(mtmp));
+//BEGIN PACMAN/DIGDUG CHALLENGE CODE
+			if((Is_pmaze_level(&u.uz))
+				&& ((mtmp->mnum == PM_BLINKY)
+				|| (mtmp->mnum == PM_PINKY)
+				|| (mtmp->mnum == PM_INKY)
+				|| (mtmp->mnum == PM_CLYDE)))
+			{
+				pline("%s steals one of your remaining lives!", Monnam(mtmp));
+
+				u.pacmanchallenge_livesleft --;
+				if( 1 > u.pacmanchallenge_livesleft)
+				{
+					u.pacmanchallenge_livesleft = 0;
+					u.pacmanchallenge_cantry = 0;
+
+					schedule_goto(&oracle_level, FALSE, FALSE, 1, "and that was your last life, too ...", (char *)0);
+				}
+			}
+			else if((Is_dmaze_level(&u.uz))
+				&& ((mtmp->mnum == PM_FYGAR)
+				|| (mtmp->mnum == PM_POOKA)))
+			{
+				pline("%s steals one of your remaining lives!", Monnam(mtmp));
+
+				u.digdugchallenge_livesleft --;
+				if( 1 > u.digdugchallenge_livesleft)
+				{
+					u.digdugchallenge_livesleft = 0;
+					u.digdugchallenge_cantry = 0;
+
+					digdugchallenge_level.dnum = u.digdugchallenge_returndungeon;
+					digdugchallenge_level.dlevel = u.digdugchallenge_returnlevel;
+					schedule_goto(&digdugchallenge_level, FALSE, FALSE, 1, "and that was your last life, too ...", (char *)0);
+				}
+			}
+			else
+			{
+				pline("%s touches you!", Monnam(mtmp));
+			}
+
+//			pline("%s touches you!", Monnam(mtmp));
 			break;
+//END PACMAN/DIGDUG CHALLENGE CODE
 		case AT_TENT:
 			pline("%s tentacles suck you!",
 				        s_suffix(Monnam(mtmp)));

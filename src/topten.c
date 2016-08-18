@@ -10,6 +10,12 @@
 #include "patchlevel.h"
 #endif
 
+//BEGIN TOURNAMENT CODE
+#include <pwd.h>
+#include <stdio.h>
+#include <unistd.h> 
+//END TOURNAMENT CODE
+
 #ifdef VMS
  /* We don't want to rewrite the whole file, because that entails	 */
  /* creating a new version which requires that the old one be deletable. */
@@ -33,9 +39,12 @@ static long final_fpos;
 #define NAMSZ	10
 #define DTHSZ	100
 #define ROLESZ   3
-#define PERSMAX	 3		/* entries per name/uid per char. allowed */
+
+//BEGIN TOURNAMENT CODE
+#define PERSMAX	 	10000	/* entries per name/uid per char. allowed */
 #define POINTSMIN	1	/* must be > 0 */
-#define ENTRYMAX	100	/* must be >= 10 */
+#define ENTRYMAX	1000000	/* must be >= 10 */
+//END TOURNAMENT CODE
 
 #if !defined(MICRO) && !defined(MAC) && !defined(WIN32)
 #define PERS_IS_UID		/* delete for PERSMAX per name; now per uid */
@@ -59,6 +68,10 @@ struct toptenentry {
 	char death[DTHSZ+1];
 } *tt_head;
 
+#ifdef XLOGFILE
+STATIC_DCL void FDECL(munge_xlstring, (char *dest, char *src, int n));
+STATIC_DCL void FDECL(write_xlentry, (FILE *,struct toptenentry *));
+#endif
 STATIC_DCL void FDECL(topten_print, (const char *));
 STATIC_DCL void FDECL(topten_print_bold, (const char *));
 STATIC_DCL xchar FDECL(observable_depth, (d_level *));
@@ -66,10 +79,19 @@ STATIC_DCL void NDECL(outheader);
 STATIC_DCL void FDECL(outentry, (int,struct toptenentry *,BOOLEAN_P));
 STATIC_DCL void FDECL(readentry, (FILE *,struct toptenentry *));
 STATIC_DCL void FDECL(writeentry, (FILE *,struct toptenentry *));
+//BEGIN TOURNAMENT CODE
+STATIC_DCL void FDECL(postentry, (FILE *,struct toptenentry *));
+//END TOURNAMENT CODE
 STATIC_DCL void FDECL(free_ttlist, (struct toptenentry *));
 STATIC_DCL int FDECL(classmon, (char *,BOOLEAN_P));
 STATIC_DCL int FDECL(score_wanted,
 		(BOOLEAN_P, int,struct toptenentry *,int,const char **,int));
+#ifdef RECORD_CONDUCT
+STATIC_DCL long FDECL(encodeconduct, (void));
+#endif
+#ifdef RECORD_ACHIEVE
+STATIC_DCL long FDECL(encodeachieve, (void));
+#endif
 #ifdef NO_SCAN_BRACK
 STATIC_DCL void FDECL(nsb_mung_line,(char*));
 STATIC_DCL void FDECL(nsb_unmung_line,(char*));
@@ -83,6 +105,10 @@ NEARDATA const char * const killed_by_prefix[] = {
 };
 
 static winid toptenwin = WIN_ERR;
+
+#ifdef RECORD_START_END_TIME
+static time_t deathtime = 0L;
+#endif
 
 STATIC_OVL void
 topten_print(x)
@@ -226,6 +252,187 @@ struct toptenentry *tt;
 #endif
 }
 
+#ifdef XLOGFILE
+#define SEP ":"
+#define SEPC ':'
+
+/* copy a maximum of n-1 characters from src to dest, changing ':' and '\n'
+ * to '_'; always null-terminate. */
+STATIC_OVL void
+munge_xlstring(dest, src, n)
+char *dest;
+char *src;
+int n;
+{
+  int i;
+
+  for(i = 0; i < (n - 1) && src[i] != '\0'; i++) {
+    if(src[i] == SEPC || src[i] == '\n')
+      dest[i] = '_';
+    else
+      dest[i] = src[i];
+  }
+
+  dest[i] = '\0';
+
+  return;
+}
+
+STATIC_OVL void
+write_xlentry(rfile,tt)
+FILE *rfile;
+struct toptenentry *tt;
+{
+
+  char buf[DTHSZ+1];
+
+  /* Log all of the data found in the regular logfile */
+  (void)fprintf(rfile,
+                "version=%d.%d.%d"
+                SEP "points=%ld"
+                SEP "deathdnum=%d"
+                SEP "deathlev=%d"
+                SEP "maxlvl=%d"
+                SEP "hp=%d"
+                SEP "maxhp=%d"
+                SEP "deaths=%d"
+                SEP "deathdate=%ld"
+                SEP "birthdate=%ld"
+                SEP "uid=%d",
+                tt->ver_major, tt->ver_minor, tt->patchlevel,
+                tt->points, tt->deathdnum, tt->deathlev,
+                tt->maxlvl, tt->hp, tt->maxhp, tt->deaths,
+                tt->deathdate, tt->birthdate, tt->uid);
+
+  (void)fprintf(rfile,
+                SEP "role=%s"
+                SEP "race=%s"
+                SEP "gender=%s"
+                SEP "align=%s",
+                tt->plrole, tt->plrace, tt->plgend, tt->plalign);
+   
+   munge_xlstring(buf, plname, DTHSZ + 1);
+  (void)fprintf(rfile, SEP "name=%s", buf);
+
+   munge_xlstring(buf, tt->death, DTHSZ + 1);
+  (void)fprintf(rfile, SEP "death=%s", buf);
+
+#ifdef RECORD_CONDUCT
+  (void)fprintf(rfile, SEP "conduct=0x%lx", encodeconduct());
+#endif
+
+#ifdef RECORD_TURNS
+  (void)fprintf(rfile, SEP "turns=%ld", moves);
+#endif
+
+#ifdef RECORD_ACHIEVE
+  (void)fprintf(rfile, SEP "achieve=0x%lx", encodeachieve());
+#endif
+
+#ifdef RECORD_REALTIME
+  (void)fprintf(rfile, SEP "realtime=%ld", (long)realtime_data.realtime);
+#endif
+
+#ifdef RECORD_START_END_TIME
+  (void)fprintf(rfile, SEP "starttime=%ld", (long)u.ubirthday);
+  (void)fprintf(rfile, SEP "endtime=%ld", (long)deathtime);
+#endif
+
+#ifdef RECORD_GENDER0
+  (void)fprintf(rfile, SEP "gender0=%s", genders[flags.initgend].filecode);
+#endif
+
+#ifdef RECORD_ALIGN0
+  (void)fprintf(rfile, SEP "align0=%s", 
+          aligns[1 - u.ualignbase[A_ORIGINAL]].filecode);
+#endif
+
+#ifdef RECORD_EXTINCTIONISM
+  /* Code by ais523, based on list_vanquished in end.c */
+  {
+    int extinctioncount = 0;
+    long kills120 = 0;
+    int i;
+    for (i = LOW_PM; i < NUMMONS; i++) {
+      if (mvitals[i].died > 120) kills120 += 120;
+      else kills120 += mvitals[i].died;
+      extinctioncount += !!(mvitals[i].mvflags & G_EXTINCT);
+    }
+    (void)fprintf(rfile, SEP "extinctions=%d",
+                  extinctioncount);
+    (void)fprintf(rfile, SEP "kills120=%ld",
+                  kills120);
+  }
+#endif
+
+  (void)fprintf(rfile, "\n");
+
+}
+
+#undef SEP
+#undef SEPC
+#endif /* XLOGFILE */
+
+//BEGIN TOURNAMENT CODE
+STATIC_OVL void
+postentry(rfile,tt)
+FILE *rfile;
+struct toptenentry *tt;
+{
+	char		deathscript_path[255];
+	char		tournament_out[1024];
+	struct passwd	*NH_passwd;
+	int		pid, status; 
+
+	sprintf(tournament_out, "DEATH: ");
+
+#ifdef NO_SCAN_BRACK
+	sprintf(tournament_out,"%s%d %d %d %ld %d %d %d %d %d %d %ld %ld %d ",
+#else
+	sprintf(tournament_out,"%s%d.%d.%d %ld %d %d %d %d %d %d %ld %ld %d ",
+#endif
+		tournament_out,
+		tt->ver_major, tt->ver_minor, tt->patchlevel,
+		tt->points, tt->deathdnum, tt->deathlev,
+		tt->maxlvl, tt->hp, tt->maxhp, tt->deaths,
+		tt->deathdate, tt->birthdate, tt->uid);
+	if (tt->ver_major < 3 || (tt->ver_major == 3 && tt->ver_minor < 3))
+#ifdef NO_SCAN_BRACK
+		sprintf(tournament_out,"%s%c%c %s %s\n",
+#else
+		sprintf(tournament_out,"%s%c%c %s,%s\n",
+#endif
+			tournament_out,
+			tt->plrole[0], tt->plgend[0],
+			onlyspace(tt->name) ? "_" : tt->name, tt->death);
+	else
+#ifdef NO_SCAN_BRACK
+		sprintf(tournament_out,"%s%s %s %s %s %s %s\n",
+#else
+		sprintf(tournament_out,"%s%s %s %s %s %s,%s\n",
+#endif
+			tournament_out,
+			tt->plrole, tt->plrace, tt->plgend, tt->plalign,
+			onlyspace(tt->name) ? "_" : tt->name, tt->death);
+
+	NH_passwd = getpwnam("nhadmin");
+
+	sprintf(deathscript_path, "%s/bin/death.pl", NH_passwd->pw_dir);
+
+	if(fork())
+	{
+		//parent; waiting
+		pid = wait(&status);
+	}
+	else
+	{
+		//child; running script
+		execl(deathscript_path, "death.pl", tournament_out, NULL); 
+		exit(0);
+	} 
+}
+//END TOURNAMENT CODE
+
 STATIC_OVL void
 free_ttlist(tt)
 struct toptenentry *tt;
@@ -255,6 +462,9 @@ int how;
 #ifdef LOGFILE
 	FILE *lfile;
 #endif /* LOGFILE */
+#ifdef XLOGFILE
+	FILE *xlfile;
+#endif /* XLOGFILE */
 
 /* Under DICE 3.0, this crashes the system consistently, apparently due to
  * corruption of *rfile somewhere.  Until I figure this out, just cut out
@@ -312,7 +522,14 @@ int how;
 	t0->plgend[ROLESZ] = '\0';
 	(void) strncpy(t0->plalign, aligns[1-u.ualign.type].filecode, ROLESZ);
 	t0->plalign[ROLESZ] = '\0';
-	(void) strncpy(t0->name, plname, NAMSZ);
+//BEGIN TOURNAMENT CODE
+//	(void) strncpy(t0->name, plname, NAMSZ);
+	(void) strncpy(t0->name, plname, (NAMSZ - 1));
+	if(u.asterisks)
+	{
+	  (void) strncat(t0->name, "*", 1);
+	}
+//END TOURNAMENT CODE
 	t0->name[NAMSZ] = '\0';
 	t0->death[0] = '\0';
 	switch (killer_format) {
@@ -332,7 +549,22 @@ int how;
 			break;
 	}
 	t0->birthdate = yyyymmdd(u.ubirthday);
-	t0->deathdate = yyyymmdd((time_t)0L);
+
+#ifdef RECORD_START_END_TIME
+  /* Make sure that deathdate and deathtime refer to the same time; it
+   * wouldn't be good to have deathtime refer to the day after deathdate. */
+
+#if defined(BSD) && !defined(POSIX_TYPES)
+        (void) time((long *)&deathtime);
+#else
+        (void) time(&deathtime);
+#endif
+
+        t0->deathdate = yyyymmdd(deathtime);
+#else
+        t0->deathdate = yyyymmdd((time_t)0L);
+#endif /* RECORD_START_END_TIME */
+
 	t0->tt_next = 0;
 #ifdef UPDATE_RECORD_IN_PLACE
 	t0->fpos = -1L;
@@ -344,11 +576,26 @@ int how;
 		HUP raw_print("Cannot open log file!");
 	    } else {
 		writeentry(lfile, t0);
+//BEGIN TOURNAMENT CODE
+		postentry(lfile, t0);
+//END TOURNAMENT CODE
 		(void) fclose(lfile);
 	    }
 	    unlock_file(LOGFILE);
 	}
 #endif /* LOGFILE */
+
+#ifdef XLOGFILE
+         if(lock_file(XLOGFILE, SCOREPREFIX, 10)) {
+             if(!(xlfile = fopen_datafile(XLOGFILE, "a", SCOREPREFIX))) {
+                  HUP raw_print("Cannot open extended log file!");
+             } else {
+                  write_xlentry(xlfile, t0);
+                  (void) fclose(xlfile);
+             }
+             unlock_file(XLOGFILE);
+         }
+#endif /* XLOGFILE */
 
 	if (wizard || discover) {
 	    if (how != PANICKED) HUP {
@@ -734,6 +981,70 @@ int uid;
 	}
 	return 0;
 }
+
+#ifdef RECORD_CONDUCT
+long
+encodeconduct(void)
+{
+       long e = 0L;
+
+       if(!u.uconduct.food)            e |= 0x001L;
+       if(!u.uconduct.unvegan)         e |= 0x002L;
+       if(!u.uconduct.unvegetarian)    e |= 0x004L;
+       if(!u.uconduct.gnostic)         e |= 0x008L;
+       if(!u.uconduct.weaphit)         e |= 0x010L;
+       if(!u.uconduct.killer)          e |= 0x020L;
+       if(!u.uconduct.literate)        e |= 0x040L;
+       if(!u.uconduct.polypiles)       e |= 0x080L;
+       if(!u.uconduct.polyselfs)       e |= 0x100L;
+       if(!u.uconduct.wishes)          e |= 0x200L;
+       if(!u.uconduct.wisharti)        e |= 0x400L;
+       if(!num_genocides())            e |= 0x800L;
+
+       return e;
+}
+#endif
+
+#ifdef RECORD_ACHIEVE
+long
+encodeachieve(void)
+{
+  /* Achievement bitfield:
+   * bit  meaning
+   *  0   obtained the Bell of Opening
+   *  1   entered gehennom (by any means)
+   *  2   obtained the Candelabrum of Invocation
+   *  3   obtained the Book of the Dead
+   *  4   performed the invocation ritual
+   *  5   obtained the amulet
+   *  6   entered elemental planes
+   *  7   entered astral plane
+   *  8   ascended (not "escaped in celestial disgrace!")
+   *  9   obtained the luckstone from the Mines
+   *  10  obtained the sokoban prize
+   *  11  killed medusa
+   */
+
+  long r;
+
+  r = 0;
+
+  if(achieve.get_bell)           r |= 1L << 0;
+  if(achieve.enter_gehennom)     r |= 1L << 1;
+  if(achieve.get_candelabrum)    r |= 1L << 2;
+  if(achieve.get_book)           r |= 1L << 3;
+  if(achieve.perform_invocation) r |= 1L << 4;
+  if(achieve.get_amulet)         r |= 1L << 5;
+  if(In_endgame(&u.uz))          r |= 1L << 6;
+  if(Is_astralevel(&u.uz))       r |= 1L << 7;
+  if(achieve.ascended)           r |= 1L << 8;
+  if(achieve.get_luckstone)      r |= 1L << 9;
+  if(achieve.finish_sokoban)     r |= 1L << 10;
+  if(achieve.killed_medusa)      r |= 1L << 11;
+
+  return r;
+}
+#endif
 
 /*
  * print selected parts of score list.

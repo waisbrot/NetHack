@@ -139,6 +139,16 @@ struct monst {
 	long misc_worn_check;
 	xchar weapon_check;
 
+//BEGIN DIGDUG/WALDO CHALLENGE CODE   
+	int digdugchallenge_hits;
+	int  waldochallenge_isWaldo;
+	int  waldochallenge_isWally;
+	int  waldochallenge_isOdlaw;
+	int  waldochallenge_isWilma;
+	int  waldochallenge_isWenda;
+	int  waldochallenge_isWhitebeard;
+//END DIGDUG/WALDO CHALLENGE CODE
+
 	uchar mnamelth;		/* length of name (following mxlth) */
 	short mxlth;		/* length of following data */
 	/* in order to prevent alignment problems mextra should

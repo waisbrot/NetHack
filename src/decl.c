@@ -235,6 +235,10 @@ const char *c_obj_colors[] = {
 	"white",		/* CLR_WHITE */
 };
 
+#ifdef MENU_COLOR
+struct menucoloring *menu_colorings = 0;
+#endif
+
 struct c_common_strings c_common_strings = {
 	"Nothing happens.",		"That's enough tries!",
 	"That is a silly thing to %s.",	"shudder for a moment.",
@@ -269,6 +273,14 @@ char *fqn_prefix[PREFIX_COUNT] = { (char *)0, (char *)0, (char *)0, (char *)0,
 char *fqn_prefix_names[PREFIX_COUNT] = { "hackdir", "leveldir", "savedir",
 					"bonesdir", "datadir", "scoredir",
 					"lockdir", "configdir", "troubledir" };
+#endif
+
+#ifdef RECORD_ACHIEVE
+struct u_achieve achieve = DUMMY;
+#endif
+
+#if defined(RECORD_REALTIME) || defined(REALTIME_ON_BOTL)
+struct realtime_data realtime_data = { 0, 0, 0 };
 #endif
 
 /* dummy routine used to force linkage */

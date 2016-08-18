@@ -183,6 +183,12 @@ struct instance_flags {
 	char prevmsg_window;	/* type of old message window to use */
 	boolean  extmenu;	/* extended commands use menu interface */
 #endif
+#ifdef MENU_COLOR
+	boolean use_menu_color;	/* use color in menus; only if wc_color */
+#endif
+#if defined(STATUS_COLORS) && defined(TEXTCOLOR)
+	boolean use_status_colors; /* use color in status line; only if wc_color */
+#endif
 #ifdef MFLOPPY
 	boolean  checkspace;	/* check disk space before writing files */
 				/* (in iflags to allow restore after moving
@@ -279,6 +285,9 @@ struct instance_flags {
 #ifdef WIN32CON
 #define MAX_ALTKEYHANDLER 25
 	char	 altkeyhandler[MAX_ALTKEYHANDLER];
+#endif
+#ifdef REALTIME_ON_BOTL
+  boolean  showrealtime; /* show actual elapsed time */
 #endif
 };
 
